@@ -99,9 +99,12 @@ curl http://localhost:8080/protected  -L  --user test:password
 ### Przepisywanie adresów
 
 Nie zawsze pliki dają się zapisać tak jakbyśmy chcieli pokazać to użytkownikowi.
-
+Pod wcześniejszymi dyrektywami dodaj następujący kod:
+```
 <Directory "/var/www/html/rewrite">
     RewriteEngine On
     RewriteBase "/rewrite/"
     RewriteRule  ^user/([^/]*)$ /action.php?name=$1
 </Directory>
+```
+Spowoduje on, że każde zapytanie do adresu http://localhost:8080/rewrite/user/Monika zostanie przekształcone na zapytanie: `http://localhost:8080/action.php?name=Monika`. Obejrzyj wywołanie strony przy pomocy programu `curl`. Teraz obejrzałeś właściwie wszystkie narzędzia które pozwalają zaimplementować API REST.
