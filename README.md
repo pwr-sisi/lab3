@@ -45,36 +45,61 @@ Będąc w maszynie wirtualnej wykonaj polecenia
 ```
 sudo nano /etc/httpd/conf/httpd.conf
 ```
-nano to prosty edytor tekstu. dwa najważniejsze polecenia to: Ctrl-O - zapis pliku, Ctrl-X - wyjście.
+nano to prosty edytor tekstu, a jego dwa najważniejsze polecenia to: Ctrl-O - zapis pliku, Ctrl-X - wyjście.
 
-Przed restartem serwera www w celu uwzglęnienia zmian dobrze jest sprawdzić czy nie zrobilismy w pliku httpd.conf błędów:
+Przed restartem serwera www w celu uwzglęnienia zmian sprawdź czy nie zrobiłeś w pliku httpd.conf błędów (i popraw je przed restartem serwera):
 ```
 sudo apachectl configtest   # sprawdzenie wprowadzonych zmian
 ```
-i jeśli wszystko jest OK zrestartować serwer aby uwzglednić zmiany:
+Jeśli wszystko jest OK uruchom ponownie serwer aby uwzglednić zmiany:
 ```
 sudo apachectl restart
 ```
-htpasswd -bc .htpass test password
 
-curl http://localhost:8080/protected/  --user test:password
-curl http://localhost:8080/protected  --user test:password
-curl http://localhost:8080/protected  -L  --user test:password
+### Proste przekierowanie zawartości 
 
-<Directory /var/www/html/protected>
-AuthType Basic
-AuthName "Password Protected Area"
-AuthUserFile /etc/httpd/.htpasswd
-Require valid-user
-</Directory>
-
-
+W pliku httpd.conf dodaj następujące dyrektywy (poniżej sekcji `<Directory /var/www/html>...</Directory>`):
+```
 Alias /this /vagrant/other
 
 <Location /this>
    Options Indexes FollowSymLinks
    Require all granted
 </Location>
+```
+Teraz wszystkie zapytania kierowane pod adresem `https://localhost:8080/this` pobierają tak naprawdę zawartość z folderu `other`.
+
+
+### Ochrona strony hasłem
+
+Do pliku httpd.conf dodaj ochronę folderu `protected` przy pomocy hasła (wstaw fragment poniżej poprzedniej dyrektywy):
+```
+<Directory /var/www/html/protected>
+AuthType Basic
+AuthName "Password Protected Area"
+AuthUserFile /etc/httpd/.htpasswd
+Require valid-user
+</Directory>
+```
+Dyrektywa mówi, że zawartość folderu `/protected` jest udostępniana po zalogowaniu użytkownika.
+Dodatkowo musisz jeszcze utworzyć plik z hasłami:
+```
+htpasswd -bc /etc/httpd/.htpass test password
+```
+Powyższe polecenie zakłada nowy plik (opcja `-c`) i umieszcza w nim nazwę użytkownika oraz skrót hasła.
+
+Spróbuj przy pomocy przeglądarki otworzyć stronę `http://localhost:8080/protected/`, a następnie to samo zrobić przy pomocy programu curl:
+```
+curl http://localhost:8080/protected/
+curl http://localhost:8080/protected/  --user test:password
+curl http://localhost:8080/protected  --user test:password
+curl http://localhost:8080/protected  -L  --user test:password
+```
+
+### Przepisywanie adresów
+
+Nie zawsze pliki dają się zapisać tak jakbyśmy chcieli pokazać to użytkownikowi.
+
 <Directory "/var/www/html/rewrite">
     RewriteEngine On
     RewriteBase "/rewrite/"
