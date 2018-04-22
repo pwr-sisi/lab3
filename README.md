@@ -1,6 +1,6 @@
 # sisi-l03
 
-##SiSi - laboratorium 3. Serwer webowy - jak działa web API?
+## SiSi - laboratorium 3. Serwer webowy - jak działa web API?
 
 Do wykonania ćwiczeń z laboratorium potrzebujesz zainstalowanych aplikacji: VirtualBox i Vagrant.
 
@@ -21,9 +21,9 @@ Wybrane polecenia uruchom ponownie z opcją `-v`
 Obejrzyj podane strony przy pomocy przeglądarki przy włączonych narzędziach deweloperskich (Firefox - Ctrl-Shift-I). Szczególną uwagę zwróć na zakładkę *Network*
 
 ### Formularze i przekazywanie parametrów
-Używając przeglądarki otwórz stronę form.html, wypełnij formularz i wyślij go. Zobacz co wyświetla strona `action.html` do której wysyłane są dane formularza.
+Używając przeglądarki otwórz stronę form.html, wypełnij formularz i wyślij go. Zobacz co wyświetla strona `action.php` do której wysyłane są dane formularza.
 
-Wyślij dane formularza przy pomocy polecenia `curl`:
+Wyślij dane formularza przy pomocy polecenia `curl` (linijka 3 i 4 dają ten sam efekt, bo parametry z 3. przed wysłaniem są złączane do postaci z linijki 4.):
 ```
 curl http://localhost:8080/action.php
 curl http://localhost:8080/action.php?imie=Wojtek
