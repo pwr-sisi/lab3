@@ -84,7 +84,7 @@ Require valid-user
 Dyrektywa mówi, że zawartość folderu `/protected` jest udostępniana po zalogowaniu użytkownika.
 Dodatkowo musisz jeszcze utworzyć plik z hasłami:
 ```
-htpasswd -bc /etc/httpd/.htpass test password
+htpasswd -bc /etc/httpd/.htpasswd test password
 ```
 Powyższe polecenie zakłada nowy plik (opcja `-c`) i umieszcza w nim nazwę użytkownika oraz skrót hasła.
 
