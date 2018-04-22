@@ -67,7 +67,7 @@ Alias /this /vagrant/other
    Require all granted
 </Location>
 ```
-Teraz wszystkie zapytania kierowane pod adresem `https://localhost:8080/this` pobierają tak naprawdę zawartość z folderu `other`.
+Teraz wszystkie zapytania kierowane pod adresem `http://localhost:8080/this` pobierają tak naprawdę zawartość z folderu `other`.
 
 
 ### Ochrona strony hasłem
