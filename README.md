@@ -2,28 +2,28 @@
 
 ## SiSi - laboratorium 3. Serwer webowy - jak działa web API?
 
-Do wykonania ćwiczeń z laboratorium potrzebujesz zainstalowanych aplikacji: VirtualBox i Vagrant.
+Do wykonania ćwiczeń z laboratorium potrzebujesz zainstalowanych aplikacji: VirtualBox i Vagrant. Obie aplikacje istnieją w wersjach dla systemów Linux, Windows, Mac.
 
-Po pobraniu repozytorium uruchom maszynę vagranta: `vagrant up`. Gdy maszyna się skończy uruchamiać sprawdź czy możesz w przeglądarce odwiedzić adres: `http:localhost:8080`
+Po pobraniu repozytorium uruchom maszynę vagranta: `vagrant up`. Gdy maszyna zakończy proces uruchamiania sprawdź czy możesz w przeglądarce odwiedzić adres: `http://localhost:8080/`
 
 Jeśli zobaczyłeś ekran powitalny serwera Apache - gratulacje, możesz iść dalej.
 
 ### Strony statyczne
 
-Wykorzystaj polecenie curl (w systemach Linux i Mac powinno być wbudowane, w systeme Windows zwykle jest dostępne w Powershellu) aby obejrzeć zawartość następujących stron:
+Wykorzystaj polecenie curl (w systemach Linux i Mac powinno być wbudowane; w systemie Windows najlepiej otworzyć okno Git BASH, wersja wbudowana w Powershell ma nieco inne opcje), aby obejrzeć zawartość następujących stron:
 ```
 curl http://localhost:8080/
 curl http://localhost:8080/test.html
 curl http://localhost:8080/test.php
 ```
-Wybrane polecenia uruchom ponownie z opcją `-v`
+Wybrane polecenia uruchom ponownie z dodaną opcją `-v`
 
 Obejrzyj podane strony przy pomocy przeglądarki przy włączonych narzędziach deweloperskich (Firefox - Ctrl-Shift-I). Szczególną uwagę zwróć na zakładkę *Network*
 
 ### Formularze i przekazywanie parametrów
 Używając przeglądarki otwórz stronę form.html, wypełnij formularz i wyślij go. Zobacz co wyświetla strona `action.php` do której wysyłane są dane formularza.
 
-Wyślij dane formularza przy pomocy polecenia `curl` (linijka 3 i 4 dają ten sam efekt, bo parametry z 3. przed wysłaniem są złączane do postaci z linijki 4.):
+Wyślij dane formularza przy pomocy polecenia `curl` (linijki 3. i 4. dają ten sam efekt, bo parametry z 3. przed wysłaniem są złączane do postaci z linijki 4.):
 ```
 curl http://localhost:8080/action.php
 curl http://localhost:8080/action.php?imie=Wojtek
@@ -41,17 +41,17 @@ Zwróć uwagę, że przy danych formularza program curl stosuje domyślnie ustaw
 
 Aby zmienić konfigurację serwera Apache w konsoli przejdź do folderu w którym jest plik `Vagrantfile` a następnie wykonaj polecenie `vagrant ssh`.
 
-Będąc w maszynie wirtualnej wykonaj polecenia
+Będąc w maszynie wirtualnej zmodyfikuj plik konfiguracyjny serwera Apache:
 ```
 sudo nano /etc/httpd/conf/httpd.conf
 ```
 nano to prosty edytor tekstu, a jego dwa najważniejsze polecenia to: Ctrl-O - zapis pliku, Ctrl-X - wyjście.
 
-Przed restartem serwera www w celu uwzglęnienia zmian sprawdź czy nie zrobiłeś w pliku httpd.conf błędów (i popraw je przed restartem serwera):
+Przed restartem serwera w celu uwzglęnienia zmian, sprawdź czy nie zrobiłeś w pliku httpd.conf błędów (i popraw je przed restartem serwera):
 ```
-sudo apachectl configtest   # sprawdzenie wprowadzonych zmian
+sudo apachectl configtest
 ```
-Jeśli wszystko jest OK uruchom ponownie serwer aby uwzglednić zmiany:
+Jeśli wszystko jest OK, uruchom ponownie serwer aby uwzglednić zmiany:
 ```
 sudo apachectl restart
 ```
