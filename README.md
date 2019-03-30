@@ -4,107 +4,125 @@
 
 Do wykonania ćwiczeń z laboratorium potrzebujesz zainstalowanych aplikacji: VirtualBox i Vagrant. Obie aplikacje istnieją w wersjach dla systemów Linux, Windows, Mac.
 
-Po pobraniu repozytorium uruchom maszynę vagranta: `vagrant up`. Gdy maszyna zakończy proces uruchamiania sprawdź czy możesz w przeglądarce odwiedzić adres: `http://localhost:8080/`
+Po pobraniu repozytorium uruchom maszynę vagranta: `vagrant up`. Gdy maszyna zakończy proces uruchamiania w wyświetlonym przez VirtualBox okinie maszyny wirtualnej zaloguj się na konto vagrant używając hasła vagrant.
 
-Jeśli zobaczyłeś ekran powitalny serwera Apache - gratulacje, możesz iść dalej.
+W ramach ćwiczenia przygotujesz plik konfiguracyjny dla serwera Nginx.
 
 ### Strony statyczne
 
-Wykorzystaj polecenie curl (w systemach Linux i Mac powinno być wbudowane; w systemie Windows najlepiej otworzyć okno Git BASH, wersja wbudowana w Powershell ma nieco inne opcje), aby obejrzeć zawartość następujących stron:
+Otwórz okno konsoli (System tools > LXTerminal). Wpisz polecenie
 ```
-curl http://localhost:8080/
-curl http://localhost:8080/test.html
-curl http://localhost:8080/test.php
+sudo  nano /etc/nginx/nginx.conf
 ```
-Wybrane polecenia uruchom ponownie z dodaną opcją `-v`
+W otworzonym pliku, poniżej sekcji events wstaw kolejną sekcję konfigurującą obsługę protokołu HTTP. Opcja gzip włącza kompresję przesyłanych plików:
+```
+http {
+    gzip on;
 
-Obejrzyj podane strony przy pomocy przeglądarki przy włączonych narzędziach deweloperskich (Firefox - Ctrl-Shift-I). Szczególną uwagę zwróć na zakładkę *Network*
+}
+```
 
-### Formularze i przekazywanie parametrów
-Używając przeglądarki otwórz stronę form.html, wypełnij formularz i wyślij go. Zobacz co wyświetla strona `action.php` do której wysyłane są dane formularza.
+Wewnątrz sekcji http wstaw sekcję reprezentującą serwer wirtualny:
+```
+server {
+    server_name localhost;
+    listen 80;
 
-Wyślij dane formularza przy pomocy polecenia `curl` (linijki 3. i 4. dają ten sam efekt, bo parametry z 3. przed wysłaniem są złączane do postaci z linijki 4.):
+    root /vagrant/www;
+}
 ```
-curl http://localhost:8080/action.php
-curl http://localhost:8080/action.php?imie=Wojtek
-curl -X POST http://localhost:8080/action.php -d "imie=Jan" -d "nazwisko=Kowalski"
-curl -X POST http://localhost:8080/action.php -d "imie=Jan&nazwisko=Kowalski"
-curl -X POST http://localhost:8080/action.php?imie2=Iza  -d "imie=Wojtek"
-```
-Wypróbuj również przesyłanie danych formularza przy użyciu formatu JSON:
-```
-curl -X POST http://localhost:8080/action-json.php -d "{\"name\":\"Wojtek\"}"  -H "Content-Type: application/json"
-```
-Zwróć uwagę, że przy danych formularza program curl stosuje domyślnie ustawienie `x-url-encoded`.
+Zapisz zmodyfikowany plik konfiguracyjny (Ctrl-S).
 
-### Modyfikacja działania serwera www - nie zawsze to co widzisz wygląda tak jak Ci się wydaje
+Otwórz drugie okno terminala i wykonaj polecenia: sprawdzające konfigurację i restartującą serwer. Po każdej modyfikacji pliku konfiguracyjnego sprawdzaj czy składnia jest poprawna i dopiero później restartuj serwer:
+```
+sudo nginx -t
+sudo nginx -s restart
+```
 
-Aby zmienić konfigurację serwera Apache w konsoli przejdź do folderu w którym jest plik `Vagrantfile` a następnie wykonaj polecenie `vagrant ssh`.
+Otwórz okno przeglądarki i zobacz czy możesz otworzyć stronę http://localhost/. W oknie terminala wpisz polecenie:
+```
+curl http://localhost/
+curl -v http://localhost/
+```
+aby sprawdzić dane przesyłane z serwera. Często użycie polecenia curl jest szybsze niż odpalenie przeglądarki.
 
-Będąc w maszynie wirtualnej zmodyfikuj plik konfiguracyjny serwera Apache:
-```
-sudo nano /etc/httpd/conf/httpd.conf
-```
-nano to prosty edytor tekstu, a jego dwa najważniejsze polecenia to: Ctrl-O - zapis pliku, Ctrl-X - wyjście.
-
-Przed restartem serwera w celu uwzglęnienia zmian, sprawdź czy nie zrobiłeś w pliku httpd.conf błędów (i popraw je przed restartem serwera):
-```
-sudo apachectl configtest
-```
-Jeśli wszystko jest OK, uruchom ponownie serwer aby uwzglednić zmiany:
-```
-sudo apachectl restart
-```
 
 ### Proste przekierowanie zawartości 
 
-W pliku httpd.conf dodaj następujące dyrektywy (poniżej sekcji `<Directory /var/www/html>...</Directory>`):
+Obejrzyj źródło strony w przeglądarce (View Page Source). Zauważ, że znajduje się tam odniesienie do rysunku (img), ale wpisanie w przeglądarce adresu http://localhost/img/webserver.jpeg nie wyświetla obrazka, ponieważ w katalogu /vagrant/www nie ma katalogu img z obrazkami. Obrazki znajdują się w katalogu /vagrant/images. Poniżej opcji root dodaj moduł definiujący przekierowanie:
 ```
-Alias /this /vagrant/other
-
-<Location /this>
-   Options Indexes FollowSymLinks
-   Require all granted
-</Location>
+location /img/ {
+    gzip off;
+    alias /vagrant/images/;
+}
 ```
-Teraz wszystkie zapytania kierowane pod adresem `http://localhost:8080/this` pobierają tak naprawdę zawartość z folderu `other`.
-
+Sprawdź konfigurację i zrestartuj serwer. Teraz na głównej stronie powinien być już wyświetlany obrazek. Dodatkowo opcja gzip wyłącza kompresję obrazków tylko w tej sekcji.
 
 ### Ochrona strony hasłem
 
-Do pliku httpd.conf dodaj ochronę folderu `protected` przy pomocy hasła (wstaw fragment poniżej poprzedniej dyrektywy):
-```
-<Directory /var/www/html/protected>
-AuthType Basic
-AuthName "Password Protected Area"
-AuthUserFile /etc/httpd/.htpasswd
-Require valid-user
-</Directory>
-```
-Dyrektywa mówi, że zawartość folderu `/protected` jest udostępniana po zalogowaniu użytkownika.
-Dodatkowo musisz jeszcze utworzyć plik z hasłami:
-```
-sudo htpasswd -bc /etc/httpd/.htpasswd test password
-```
-Powyższe polecenie zakłada nowy plik (opcja `-c`) i umieszcza w nim nazwę użytkownika oraz skrót hasła.
+W folderze /vagrant/www znajduje się folder protected, w którym mają być przechowywane strony chronione hasłem. Obejrzyj plik /vagrant/password_file zawierający listę użytkowników i ich haseł. Dodaj swojego użytkownika z nowym hasłem.
 
-Spróbuj przy pomocy przeglądarki otworzyć stronę `http://localhost:8080/protected/`, a następnie to samo zrobić przy pomocy programu curl:
+Poniżej sekcji z poprzedniego zadania dodaj sekcję konfigurującą ochronę hasłem:
 ```
-curl http://localhost:8080/protected/
-curl http://localhost:8080/protected/  --user test:password
-curl http://localhost:8080/protected  --user test:password
-curl http://localhost:8080/protected  -L  --user test:password
+location /protected/ {
+    auth_basic "Protected web pages";
+    auth_basic_user_file /vagrant/password_file;
+}
 ```
+Zrestartuj serwer (sprawdzając wcześniej konfigurację) i sprawdź czy przed wyświetleniem chronionej strony przeglądarka pyta o hasło. Zaloguj się na swojego użytkownika.
+
+Spróbuj następnie to samo zrobić przy pomocy programu curl:
+```
+curl http://localhost/protected/
+curl http://localhost/protected  --user ania:password
+curl http://localhost/protected -L --user ania:password
+```
+
+### Nginx jako proksy
+
+Serwer Nginx może przekazywać połączenia do innych aplikacji (również umieszczonych na innych serwerach).
+
+Uruchom aplikację node.js:
+```
+sudo pm2 start /vagrant/node/hello.js
+```
+Sprawdź czy w przeglądarce zobaczysz działającą aplikację: http://localhost:3000/
+
+Poniżej sekcji z poprzedniego zadania umieść sekcję przekierowującą ruch:
+```
+location /app/ {
+    proxy_pass http://127.0.0.1:3000/;
+    proxy_set_header Host $host;
+}
+```
+Po zrestartowaniu serwera zobaczysz, że aplikacja jest dostępna pod adresem: http://localhost/app/. Nginx przekierowuje zapytanie do innej aplikacji. Opcja proxy_set_header przekazuje do aplikacji nazwę hosta z którego nadeszło zapytanie.
 
 ### Przepisywanie adresów
 
-Nie zawsze pliki dają się zapisać tak jakbyśmy chcieli pokazać to użytkownikowi.
-Pod wcześniejszymi dyrektywami dodaj następujący kod:
+Nie zawsze pliki dają się zapisać tak jakbyśmy chcieli pokazać to użytkownikowi. Zamiast stosować zapis http://localhost/app?name=Wojtek (parametr name przekazywany metodą GET) chcelibyśmy zastosować następujący zapis: http:localhost/greet/Wojtek. Aby to zrobić, pod wcześniejszą sekcją dodaj następujący kod:
 ```
-<Directory "/var/www/html/rewrite">
-    RewriteEngine On
-    RewriteBase "/rewrite/"
-    RewriteRule  ^user/([^/]*)$ /action.php?name=$1
-</Directory>
+location /greet/ {
+    rewrite ^/greet/(.*)$ /app/?name=$1?;
+}
 ```
-Spowoduje on, że każde zapytanie do adresu `http://localhost:8080/rewrite/user/Monika` zostanie przekształcone na zapytanie: `http://localhost:8080/action.php?name=Monika`. Obejrzyj wywołanie strony przy pomocy programu `curl`. Teraz znasz właściwie wszystkie narzędzia które pozwolą nam zaimplementować API REST.
+Spowoduje on, że każde zapytanie do adresu `http://localhost/greet/Monika` zostanie przekształcone opcją rewrite na zapytanie: `http://localhost:8080/app?name=Monika`. 
+Zrestartuj serwer.
+
+Obejrzyj wywołanie strony przy pomocy przeglądarki i programu `curl`. 
+
+Obejrzyj stronę http://localhost/form.html. Wpisz dane użytkownika, i zobacz gdzie trafiasz po kliknięciu przycisku Greet.
+
+### Szyfrowanie połączenia z serwerem Nginx
+
+Aby zaszyfrować połączenie używając protokołu HTTPS poniżej opcji listen 80; dodaj następujące opcje:
+```
+listen 443 ssl;
+
+ssl_certificate /vagrant/ssl/localhost.crt;
+ssl_certificate_key /vagrant/ssl/localhost.key;
+```
+Opcje ssl_certyficate określają gdzie znajduje sie cartyfikat i klucz szyfrowania.
+Zrestartuj serwer i zobacz czy możesz obejrzeć stronę wpisując adres https://localhost/.
+Ponieważ certyfikat jest typu self-signed, to przeglądarka wyświetli ostrzeżenie o możliwym zagrożeniu. Musisz w takim wypadku dodać wyjątek bezpieczeństwa.
+      
+Teraz znasz właściwie wszystkie narzędzia które pozwolą nam zaimplementować API REST.
