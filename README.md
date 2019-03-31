@@ -36,7 +36,7 @@ Zapisz zmodyfikowany plik konfiguracyjny (Ctrl-S).
 Otwórz drugie okno terminala i wykonaj polecenia: sprawdzające konfigurację i restartującą serwer. Po każdej modyfikacji pliku konfiguracyjnego sprawdzaj czy składnia jest poprawna i dopiero później restartuj serwer:
 ```
 sudo nginx -t
-sudo nginx -s restart
+sudo nginx -s reload
 ```
 
 Otwórz okno przeglądarki i zobacz czy możesz otworzyć stronę http://localhost/. W oknie terminala wpisz polecenie:
